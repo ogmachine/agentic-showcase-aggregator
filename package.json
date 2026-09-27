@@ -1,0 +1,12 @@
+{
+  "name": "agentic-showcase-aggregator",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "validate:data": "node scripts/validate-data.js",
+    "serve": "npx serve ."
+  },
+  "devDependencies": {}
+}

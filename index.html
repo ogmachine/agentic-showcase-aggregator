@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agentic Resource Library</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #0b1020; color: #e5e7eb; }
+    body { margin: 0; } main { max-width: 1400px; margin: auto; padding: 24px; }
+    .controls { display: grid; grid-template-columns: repeat(auto-fit,minmax(170px,1fr)); gap: 12px; margin: 20px 0; }
+    label { display:grid; gap:6px; color:#aab3c5; font-size:12px; text-transform:uppercase; }
+    input,select { padding:10px; border:1px solid #334155; border-radius:8px; background:#111827; color:inherit; }
+    .results { display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:16px; }
+    article { border:1px solid #26334a; border-radius:12px; padding:16px; background:#111827; }
+    a { color:#93c5fd; } .chip { color:#c4b5fd; } .score { float:right; color:#86efac; font-weight:700; }
+    .tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; } .tag { padding:4px 7px; border-radius:999px; background:#1e293b; font-size:12px; }
+    .muted { color:#aab3c5; line-height:1.45; }
+  </style>
+</head>
+<body><main>
+  <h1>Agentic Resource Library</h1>
+  <p class="muted">Scan reusable examples before building from scratch. Filter by platform, type, use-case, format, maturity, and adoption mode.</p>
+  <section class="controls">
+    <label>Search<input id="query" placeholder="research, coding, memory..." /></label>
+    <label>Platform<select id="platform"><option value="">All</option></select></label>
+    <label>Type<select id="type"><option value="">All</option></select></label>
+    <label>Use case<select id="useCase"><option value="">All</option></select></label>
+    <label>Format<select id="format"><option value="">All</option></select></label>
+    <label>Adoption<select id="adoptionMode"><option value="">All</option><option>full</option><option>partial</option><option>hybrid</option><option>combined</option></select></label>
+  </section>
+  <p id="count" class="muted"></p><section id="results" class="results"></section>
+</main>
+<script type="module">
+import { resources } from './src/resources.js';
+import { filterResources, sortResources, adoptionRecommendation } from './src/aggregator.js';
+const ids=['query','platform','type','useCase','format','adoptionMode']; const els=Object.fromEntries(ids.map(id=>[id,document.getElementById(id)]));
+const values=(key)=>[...new Set(resources.flatMap(r=>Array.isArray(r[key])?r[key]:[r[key]]) )].sort();
+for (const [id,key] of [['platform','platform'],['type','type'],['useCase','use_case'],['format','format']]) for(const value of values(key)){const o=document.createElement('option');o.value=value;o.textContent=value;els[id].append(o)}
+function render(){const rs=sortResources(filterResources(resources,{query:els.query.value,platform:els.platform.value,type:els.type.value,useCase:els.useCase.value,format:els.format.value,adoptionMode:els.adoptionMode.value})); document.getElementById('count').textContent=`${rs.length} resources`; document.getElementById('results').innerHTML=rs.map(r=>`<article><span class="chip">${r.platform} · ${r.source_category}</span><span class="score">${r.reusability_score}/100</span><h2>${r.title}</h2><a href="${r.source_url}" target="_blank" rel="noreferrer">Open source ↗</a><p class="muted">${r.summary}</p><p class="muted"><b>Recommendation:</b> ${adoptionRecommendation(r)}</p><div class="tags">${[...r.type,...r.use_case,...r.format].map(x=>`<span class="tag">${x}</span>`).join('')}</div></article>`).join('') || '<p class="muted">No matching resources.</p>'}
+ids.forEach(id=>{els[id].addEventListener('input',render);els[id].addEventListener('change',render)}); render();
+</script></body></html>
